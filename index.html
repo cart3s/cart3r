@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080808">
+  <meta name="description" content="CART3R AI — personal AI workspace">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>CART3R AI</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" aria-label="Buka menu">☰</button>
+      <div class="brand"><span class="brand-mark">C</span><div><strong>CART3R AI</strong><small id="pageSubtitle">Personal AI workspace</small></div></div>
+      <button class="icon-btn accent" id="newChatBtn" aria-label="Percakapan baru">＋</button>
+    </header>
+
+    <div class="scrim" id="scrim"></div>
+    <aside class="sidebar" id="sidebar">
+      <div class="side-brand"><span class="brand-mark large">C</span><div><strong>CART3R AI</strong><small>COMMAND INTERFACE</small></div></div>
+      <nav>
+        <button class="nav-item active" data-page="chat">▣ <span>Chat</span></button>
+        <button class="nav-item" data-page="studio">▧ <span>Image Studio</span></button>
+        <button class="nav-item" data-page="history">◷ <span>History</span></button>
+        <button class="nav-item" data-page="settings">⚙ <span>Settings</span></button>
+        <button class="nav-item" data-page="about">ⓘ <span>About</span></button>
+      </nav>
+      <div class="sidebar-bottom"><span class="status-dot"></span> Interface online <small>BUILD 01 · DEMO MODE</small></div>
+    </aside>
+
+    <main class="main">
+      <section class="page active" id="chatPage">
+        <div class="welcome" id="welcome">
+          <div class="core-logo">✦</div>
+          <p class="eyebrow">YOUR PERSONAL AI WORKSPACE</p>
+          <h1>How can I help<br><span>you today?</span></h1>
+          <p class="muted">Tulis ide, ajukan pertanyaan, atau mulai proyek baru.</p>
+          <div class="suggestions">
+            <button class="suggestion" data-prompt="Bantu saya merancang sebuah aplikasi.">⌘ <span>Rancang aplikasi</span></button>
+            <button class="suggestion" data-prompt="Jelaskan konsep AI dengan sederhana.">✧ <span>Belajar AI</span></button>
+            <button class="suggestion" data-prompt="Bantu saya membuat ide kreatif.">◈ <span>Cari ide kreatif</span></button>
+          </div>
+        </div>
+        <div class="messages" id="messages" aria-live="polite"></div>
+      </section>
+
+      <section class="page" id="studioPage">
+        <div class="page-heading"><p class="eyebrow">CREATIVE WORKSPACE</p><h1>Image <span>Studio</span></h1><p class="muted">Pilih foto dari perangkat untuk menyiapkan proses edit.</p></div>
+        <label class="upload-zone" for="imageInput">
+          <span class="upload-icon">＋</span><strong>Choose an image</strong><small>JPG, PNG, atau WEBP</small>
+          <input id="imageInput" type="file" accept="image/*" hidden>
+        </label>
+        <div class="image-preview-wrap hidden" id="previewWrap">
+          <img id="imagePreview" alt="Pratinjau foto yang dipilih">
+          <button class="remove-image" id="removeImage">Remove image</button>
+        </div>
+        <label class="field-label" for="editPrompt">EDIT INSTRUCTION</label>
+        <textarea id="editPrompt" class="edit-prompt" rows="3" placeholder="Contoh: ubah latar menjadi studio dengan pencahayaan sinematik..."></textarea>
+        <button class="primary-btn wide" id="prepareEditBtn">Prepare edit request ↗</button>
+        <p class="hint" id="studioHint">Demo UI: pemrosesan gambar AI akan diaktifkan setelah API backend terhubung.</p>
+      </section>
+
+      <section class="page" id="historyPage">
+        <div class="page-heading"><p class="eyebrow">YOUR WORKSPACE</p><h1>Chat <span>History</span></h1></div>
+        <div class="empty-card">◷<strong>Belum ada riwayat tersimpan</strong><small>Percakapan demo saat ini hanya tersimpan selama halaman terbuka.</small></div>
+      </section>
+
+      <section class="page" id="settingsPage">
+        <div class="page-heading"><p class="eyebrow">PREFERENCES</p><h1>App <span>Settings</span></h1></div>
+        <div class="setting-row"><div><strong>Appearance</strong><small>Crimson / dark interface</small></div><span class="pill">ACTIVE</span></div>
+        <div class="setting-row"><div><strong>AI connection</strong><small>Belum dikonfigurasi</small></div><span class="pill warning">OFFLINE</span></div>
+        <div class="setting-row"><div><strong>Privacy</strong><small>Jangan masukkan data sensitif ke demo ini.</small></div></div>
+        <button class="outline-btn" id="installBtn" hidden>Install CART3R AI</button>
+      </section>
+
+      <section class="page" id="aboutPage">
+        <div class="page-heading"><p class="eyebrow">SYSTEM INFORMATION</p><h1>About <span>CART3R</span></h1></div>
+        <div class="about-card"><div class="core-logo">✦</div><h2>CART3R AI</h2><p class="muted">Personal AI workspace</p><span class="pill">PWA BUILD 01</span></div>
+        <p class="hint">Versi awal ini menyediakan antarmuka responsif, navigasi, chat demo, dan pemilihan gambar. AI sungguhan memerlukan backend dan penyedia API.</p>
+      </section>
+    </main>
+
+    <footer class="composer" id="composer">
+      <div class="attachment-chip hidden" id="attachmentChip"><span>▧ Image attached</span><button id="clearAttachment" aria-label="Hapus lampiran">×</button></div>
+      <div class="composer-box">
+        <button class="attach-btn" id="attachBtn" aria-label="Pilih gambar">＋</button>
+        <textarea id="messageInput" rows="1" placeholder="Message CART3R AI..." aria-label="Tulis pesan"></textarea>
+        <button class="send-btn" id="sendBtn" aria-label="Kirim pesan">➤</button>
+      </div>
+      <small class="disclaimer">CART3R AI · DEMO INTERFACE — AI API belum terhubung</small>
+    </footer>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>
