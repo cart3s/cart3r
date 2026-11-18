@@ -11,28 +11,29 @@ let selectedFile = null;
 let deferredInstallPrompt = null;
 let previewURL = null;
 let chatHistory = [];
+let sendingMessage = false;
 
-const API_URL = "https://cart3r-ai-backend.ggyyttyytt57.workers.dev";
+// NAVIGATION
 
 function toggleMenu(open) {
   sidebar.classList.toggle("open", open);
   scrim.classList.toggle("show", open);
 }
 
-$("menuBtn").addEventListener("click", () =>
-  toggleMenu(!sidebar.classList.contains("open"))
-);
+$("menuBtn").addEventListener("click", () => {
+  toggleMenu(!sidebar.classList.contains("open"));
+});
 
 scrim.addEventListener("click", () => toggleMenu(false));
 
 function showPage(name) {
-  pages.forEach(p =>
-    $(p + "Page").classList.toggle("active", p === name)
-  );
+  pages.forEach((page) => {
+    $(page + "Page").classList.toggle("active", page === name);
+  });
 
-  document.querySelectorAll(".nav-item").forEach(b =>
-    b.classList.toggle("active", b.dataset.page === name)
-  );
+  document.querySelectorAll(".nav-item").forEach((button) => {
+    button.classList.toggle("active", button.dataset.page === name);
+  });
 
   $("composer").classList.toggle(
     "hidden",
@@ -45,14 +46,18 @@ function showPage(name) {
     history: "Your conversations",
     settings: "Preferences",
     about: "System information"
-  })[name];
+  })[name] || "";
 
   toggleMenu(false);
 }
 
-document.querySelectorAll(".nav-item").forEach(b =>
-  b.addEventListener("click", () => showPage(b.dataset.page))
-);
+document.querySelectorAll(".nav-item").forEach((button) => {
+  button.addEventListener("click", () => {
+    showPage(button.dataset.page);
+  });
+});
+
+// CHAT
 
 function addMessage(text, user = false) {
   $("welcome").classList.add("hidden");
@@ -69,16 +74,19 @@ function addMessage(text, user = false) {
 
   node.append(sender, body);
   $("messages").appendChild(node);
-  node.scrollIntoView({ behavior: "smooth", block: "end" });
+
+  node.scrollIntoView({
+    behavior: "smooth",
+    block: "end"
+  });
 }
-
-
 
 async function sendMessage() {
   const input = $("messageInput");
+  const button = $("sendBtn");
   const value = input.value.trim();
 
-  if (!value) return;
+  if (!value || sendingMessage) return;
 
   addMessage(value, true);
 
@@ -90,7 +98,7 @@ async function sendMessage() {
   input.value = "";
   input.style.height = "auto";
 
-  const button = $("sendBtn");
+  sendingMessage = true;
   button.disabled = true;
 
   try {
@@ -110,28 +118,8 @@ async function sendMessage() {
       throw new Error(result.error || "Chat AI gagal.");
     }
 
-    addMessage(result.reply);
-
-    chatHistory.push({
-      role: "assistant",
-      content: result.reply
-    });
-
-  } catch (error) {
-    console.error(error);
-    addMessage("Terjadi kesalahan: " + error.message);
-    chatHistory.pop();
-
-  } finally {
-    button.disabled = false;
-  }
-}
-
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.error || "Chat AI gagal.");
+    if (!result.reply) {
+      throw new Error("Balasan AI kosong.");
     }
 
     addMessage(result.reply);
@@ -142,38 +130,47 @@ async function sendMessage() {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("CART3R CHAT ERROR:", error);
+
     addMessage("Terjadi kesalahan: " + error.message);
+
     chatHistory.pop();
+
   } finally {
+    sendingMessage = false;
     button.disabled = false;
+    input.focus();
   }
 }
 
-
 $("sendBtn").addEventListener("click", sendMessage);
 
-$("messageInput").addEventListener("keydown", e => {
+$("messageInput").addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     sendMessage();
   }
 });
 
-$("messageInput").addEventListener("input", e => {
+$("messageInput").addEventListener("input", (e) => {
   e.target.style.height = "auto";
   e.target.style.height =
     Math.min(e.target.scrollHeight, 110) + "px";
 });
 
-document.querySelectorAll(".suggestion").forEach(b => {
-  b.addEventListener("click", () => {
-    $("messageInput").value = b.dataset.prompt;
+// SUGGESTIONS
+
+document.querySelectorAll(".suggestion").forEach((button) => {
+  button.addEventListener("click", () => {
+    $("messageInput").value = button.dataset.prompt;
     sendMessage();
   });
 });
 
+// NEW CHAT
+
 $("newChatBtn").addEventListener("click", () => {
+  chatHistory = [];
   $("messages").innerHTML = "";
   $("welcome").classList.remove("hidden");
   $("messageInput").value = "";
@@ -193,11 +190,12 @@ function chooseFile(file) {
   selectedFile = file;
 
   $("attachmentChip").classList.remove("hidden");
-
   $("studioHint").textContent =
     "Foto berhasil dipilih. Tambahkan instruksi edit.";
 
-  if (previewURL) URL.revokeObjectURL(previewURL);
+  if (previewURL) {
+    URL.revokeObjectURL(previewURL);
+  }
 
   previewURL = URL.createObjectURL(file);
 
@@ -210,13 +208,13 @@ function clearAttachment() {
   $("attachmentChip").classList.add("hidden");
 }
 
-$("attachBtn").addEventListener("click", () =>
-  $("imageInput").click()
-);
+$("attachBtn").addEventListener("click", () => {
+  $("imageInput").click();
+});
 
-$("imageInput").addEventListener("change", e =>
-  chooseFile(e.target.files[0])
-);
+$("imageInput").addEventListener("change", (e) => {
+  chooseFile(e.target.files[0]);
+});
 
 $("clearAttachment").addEventListener("click", clearAttachment);
 
@@ -230,11 +228,14 @@ $("removeImage").addEventListener("click", () => {
   const link = $("editDownloadLink");
   if (link) link.remove();
 
-  if (previewURL) URL.revokeObjectURL(previewURL);
+  if (previewURL) {
+    URL.revokeObjectURL(previewURL);
+  }
+
   previewURL = null;
 });
 
-// RESIZE IMAGE FOR AI MODEL
+// RESIZE IMAGE
 
 async function resizeImage(file) {
   const image = new Image();
@@ -248,6 +249,7 @@ async function resizeImage(file) {
     });
 
     const maxSize = 510;
+
     const scale = Math.min(
       1,
       maxSize / Math.max(image.width, image.height)
@@ -268,17 +270,20 @@ async function resizeImage(file) {
       canvas.height
     );
 
-    const blob = await new Promise(resolve =>
-      canvas.toBlob(resolve, "image/jpeg", 0.88)
-    );
+    const blob = await new Promise((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", 0.88);
+    });
 
-    if (!blob) throw new Error("Gagal memproses foto.");
+    if (!blob) {
+      throw new Error("Gagal memproses foto.");
+    }
 
     return new File(
       [blob],
       "cart3r-input.jpg",
       { type: "image/jpeg" }
     );
+
   } finally {
     URL.revokeObjectURL(objectURL);
   }
@@ -350,9 +355,7 @@ async function runPhotoEdit() {
     const result = await response.json();
 
     if (!response.ok || !result.success) {
-      throw new Error(
-        result.error || "Pemrosesan foto gagal."
-      );
+      throw new Error(result.error || "Pemrosesan foto gagal.");
     }
 
     if (!result.image) {
@@ -383,7 +386,7 @@ $("prepareEditBtn").addEventListener("click", runPhotoEdit);
 
 // PWA INSTALLATION
 
-window.addEventListener("beforeinstallprompt", e => {
+window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
   $("installBtn").hidden = false;
@@ -403,19 +406,5 @@ if ("serviceWorker" in navigator &&
     navigator.serviceWorker
       .register("./sw.js")
       .catch(console.error);
-  });
-}
-
-const sendButton = $("sendBtn");
-const messageInput = $("messageInput");
-
-if (sendButton && messageInput) {
-  sendButton.addEventListener("click", sendMessage);
-
-  messageInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
   });
 }
