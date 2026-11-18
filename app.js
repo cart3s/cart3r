@@ -10,6 +10,7 @@ const pages = ["chat", "studio", "history", "settings", "about"];
 let selectedFile = null;
 let deferredInstallPrompt = null;
 let previewURL = null;
+let chatHistory = [];
 
 function toggleMenu(open) {
   sidebar.classList.toggle("open", open);
