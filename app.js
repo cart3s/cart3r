@@ -12,6 +12,8 @@ let deferredInstallPrompt = null;
 let previewURL = null;
 let chatHistory = [];
 
+const API_URL = "https://cart3r-ai-backend.ggyyttyytt57.workers.dev";
+
 function toggleMenu(open) {
   sidebar.classList.toggle("open", open);
   scrim.classList.toggle("show", open);
@@ -70,26 +72,59 @@ function addMessage(text, user = false) {
   node.scrollIntoView({ behavior: "smooth", block: "end" });
 }
 
-function sendMessage() {
-  const value = $("messageInput").value.trim();
 
-  if (!value && !selectedFile) return;
+async function sendMessage() {
+  const input = $("messageInput");
+  const value = input.value.trim();
 
-  addMessage(
-    (selectedFile ? "[Foto dilampirkan]\n" : "") + value,
-    true
-  );
+  if (!value) return;
 
-  $("messageInput").value = "";
-  $("messageInput").style.height = "auto";
-  clearAttachment();
+  addMessage(value, true);
 
-  setTimeout(() => {
-    addMessage(
-      "Chat AI masih dalam tahap pengembangan. Gunakan Studio untuk mengedit foto."
-    );
-  }, 350);
+  chatHistory.push({
+    role: "user",
+    content: value
+  });
+
+  input.value = "";
+  input.style.height = "auto";
+
+  const button = $("sendBtn");
+  button.disabled = true;
+
+  try {
+    const response = await fetch(API_URL + "/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messages: chatHistory
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "Chat AI gagal.");
+    }
+
+    addMessage(result.reply);
+
+    chatHistory.push({
+      role: "assistant",
+      content: result.reply
+    });
+
+  } catch (error) {
+    console.error(error);
+    addMessage("Terjadi kesalahan: " + error.message);
+    chatHistory.pop();
+  } finally {
+    button.disabled = false;
+  }
 }
+
 
 $("sendBtn").addEventListener("click", sendMessage);
 
