@@ -73,6 +73,7 @@ function addMessage(text, user = false) {
 }
 
 
+
 async function sendMessage() {
   const input = $("messageInput");
   const value = input.value.trim();
@@ -102,6 +103,30 @@ async function sendMessage() {
         messages: chatHistory
       })
     });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "Chat AI gagal.");
+    }
+
+    addMessage(result.reply);
+
+    chatHistory.push({
+      role: "assistant",
+      content: result.reply
+    });
+
+  } catch (error) {
+    console.error(error);
+    addMessage("Terjadi kesalahan: " + error.message);
+    chatHistory.pop();
+
+  } finally {
+    button.disabled = false;
+  }
+}
+
 
     const result = await response.json();
 
@@ -378,5 +403,19 @@ if ("serviceWorker" in navigator &&
     navigator.serviceWorker
       .register("./sw.js")
       .catch(console.error);
+  });
+}
+
+const sendButton = $("sendBtn");
+const messageInput = $("messageInput");
+
+if (sendButton && messageInput) {
+  sendButton.addEventListener("click", sendMessage);
+
+  messageInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   });
 }
